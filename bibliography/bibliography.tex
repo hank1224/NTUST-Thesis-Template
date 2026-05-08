@@ -1,0 +1,42 @@
+\makeatletter
+\newcommand{\NTUSTCustomBiblatexOptions}{backend=biber,style=ieee}
+
+\ifdefstring{\ntust@bibstyle}{apa}{%
+  \usepackage[backend=biber,style=apa]{biblatex}
+}{%
+\ifdefstring{\ntust@bibstyle}{mla}{%
+  \usepackage[backend=biber,style=mla]{biblatex}
+}{%
+\ifdefstring{\ntust@bibstyle}{ieee}{%
+  \usepackage[backend=biber,style=ieee]{biblatex}
+}{%
+\ifdefstring{\ntust@bibstyle}{chicago}{%
+  \usepackage[backend=biber,style=chicago-authordate]{biblatex}
+}{%
+  \usepackage[\NTUSTCustomBiblatexOptions]{biblatex}
+}}}}
+
+\addbibresource{bibliography/references.bib}
+
+\DeclareFieldFormat{doi}{%
+  doi\addcolon\space
+  \ifhyperref
+    {\href{https://doi.org/#1}{\nolinkurl{#1}}}
+    {\nolinkurl{#1}}}
+\DeclareFieldFormat{url}{\bibstring{url}\addcolon\space\url{#1}\nopunct}
+\renewbibmacro*{in:}{%
+  \biblcstring{in}%
+  \printunit{\intitlepunct}}
+
+\newcommand{\NTUSTPrintBibliography}{%
+  \clearpage
+  \begingroup
+  \sloppy
+  \ifdefstring{\ntust@language}{zh}{%
+    \printbibliography[heading=bibintoc,title={參考文獻}]
+  }{%
+    \printbibliography[heading=bibintoc,title={References}]
+  }%
+  \endgroup
+}
+\makeatother

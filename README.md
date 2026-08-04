@@ -3,6 +3,8 @@
 國立臺灣科技大學（NTUST）LuaLaTeX 學位論文模板。預設使用英文主文模式，並可
 切換為中文主文。正式 PDF 只能透過固定版本的 Docker TeX Live 2025 編譯。
 
+[直接查看最新模板預覽 PDF](https://github.com/hank1224/NTUST-Thesis-Template/releases/latest/download/ntust-thesis-template-preview.pdf)
+
 ## 專案結構
 
 | 路徑 | 用途 |
@@ -96,8 +98,9 @@ PDF 根語言 `en-US` 與 `zh-TW`，並同步控制章節、目錄、圖表及�
 
 ## GitHub Actions 與預覽 PDF
 
-CI 使用與本機相同的 Docker entry point。成功時會上傳以 commit 短 SHA 命名、
-保留 14 天的 PDF artifact；模板不再追蹤 `build/thesis.pdf`。
+最新 GitHub Release 提供固定網址的預覽 PDF，不需進入 CI 頁面即可查看模板。
+CI 仍會使用與本機相同的 Docker entry point，並上傳以 commit 短 SHA 命名、
+保留 14 天的 PDF artifact；模板不追蹤 `build/thesis.pdf`。
 
 CI 字型封包以 AES-256 GPG 加密後追蹤。Repository maintainer 必須設定：
 

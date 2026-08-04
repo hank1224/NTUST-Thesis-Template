@@ -58,7 +58,9 @@ for font_file in "${font_files[@]}"; do
   fi
 done
 
-(cd "${repository_root}" && tar -czf "${temporary_root}/thesis-fonts.tar.gz" "${font_files[@]}")
+# Prevent macOS copyfile metadata and AppleDouble `._*` entries from entering
+# the portable archive consumed by Linux CI.
+(cd "${repository_root}" && COPYFILE_DISABLE=1 tar -czf "${temporary_root}/thesis-fonts.tar.gz" "${font_files[@]}")
 gpg \
   --quiet \
   --batch \

@@ -213,7 +213,9 @@
   \noindent\textbf{Keywords: }\ntust@keywordsen
 }
 \newcommand{\NTUSTMakeAcknowledgement}[1]{%
-  \ntust@fronttitle{誌謝}
+  \ifdefstring{\ntust@language}{zh}
+    {\ntust@fronttitle{誌謝}}
+    {\ntust@fronttitle{Acknowledgements}}%
   \noindent\hspace*{\parindent}\input{#1}
 }
 \newcommand{\NTUSTMakeTableOfContents}{%
@@ -228,7 +230,9 @@
 }
 \newcommand{\NTUSTMakeSymbolsIndex}[1]{%
   \ifdefstring{\ntust@includesymbols}{true}{%
-    \ntust@fronttitle{符號索引}
+    \ifdefstring{\ntust@language}{zh}
+      {\ntust@fronttitle{符號索引}}
+      {\ntust@fronttitle{List of Symbols}}%
     \input{#1}
   }{}%
 }

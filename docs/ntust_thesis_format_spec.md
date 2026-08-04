@@ -28,7 +28,7 @@ CodingAgent 實作時，請依照以下優先序處理衝突：
 
 ## 1. CodingAgent 的任務目標
 
-請用 **XeLaTeX** 實作一套台科大論文模板，至少要能完成以下能力：
+請用固定 Docker TeX Live 2025 中的 **LuaLaTeX** 實作一套台科大論文模板，至少要能完成以下能力：
 
 1. 產出符合台科大基本格式的論文 PDF。
 2. 支援 **碩士 / 博士** 切換。
@@ -68,29 +68,28 @@ CodingAgent 實作時，請依照以下優先序處理衝突：
 
 本專案以「清楚產出論文 PDF」為目標，採以下標準結構作為實作目標：
 
-- 主檔：`thesis.tex`
-- class：`ntust_thesis.cls`
-- metadata：`config/metadata.tex`
-- 模板選項：`config/options.tex`
-- 中文名詞對照：`config/chinese_trans.tex`
-- 前置頁內容：`frontmatter/`
-- 正文章節：`chapters/`
-- 後置頁內容：`backmatter/`
-- 圖片與外部頁面：`assets/`
-- 參考文獻資料庫：`bibliography/references.bib`
-- 參考文獻設定：`bibliography/bibliography.tex`
+- 主檔：`main.tex`
+- class：`thesis/template/ntust_thesis.cls`
+- class modules：`thesis/template/modules/`
+- 主文語言：`thesis/config/document.tex`
+- metadata：`thesis/config/metadata.tex`
+- 模板選項：`thesis/config/options.tex`
+- 中文名詞對照：`thesis/config/terminology_zh.tex`
+- 前置頁、正文、附錄與文獻：`thesis/content/`
+- 圖片、品牌素材、表單與本機字型：`thesis/assets/`
 - 文件與規格：`docs/`
 - 編譯輸出：`build/`
-- 編譯設定：`.latexmkrc` 管理主檔、XeLaTeX、`build/` 輸出與 `thesis` job name
-- 編譯流程：`Makefile` 提供 `latexmk` 快捷入口，避免重複宣告 build 參數
+- 編譯設定：`.latexmkrc` 管理 LuaLaTeX，`Makefile` 管理 `build/` 與 `thesis` job name
+- 編譯流程：`make pdf` 只允許透過固定 digest Docker image 啟動
 
 實作時應以此結構為準；若既有 repo 檔名或目錄不同，需逐步收斂到此結構。
 
 ### 2.1 編譯引擎
 
-- **固定使用 XeLaTeX**。
+- **固定使用 LuaLaTeX**。
 - 不以 pdfLaTeX 為主要目標。
-- 原因：需要穩定處理中文、英文字型、字級與頁面配置。
+- 不支援直接使用主機 TeX；正式建置只使用固定 Docker image。
+- 原因：需要穩定處理中文、英文字型、字級、頁面配置與 TeX 套件版本。
 
 ### 2.2 字型策略
 
@@ -103,27 +102,25 @@ LaTeX 實作請採以下策略：
 - 中文主字型固定使用：`標楷體`
 - 英文主字型固定使用：`Times New Roman`
 
-在 Linux 或其他非 Windows 環境中，請將所需字型安裝到系統或使用者字型目錄，並以 `fc-match` 確認 fontconfig 可辨識下列主要 family name：
+模板不依賴主機安裝字型，也不使用 fontconfig family name。請從有合法授權的
+Windows 安裝複製五個檔案，並以固定的小寫檔名放在專案內：
 
-- 標楷體：`標楷體` / `DFKai-SB`
-- 新細明體：`新細明體` / `PMingLiU`
-- 細明體：`細明體` / `MingLiU`
-- 微軟正黑體：`微軟正黑體` / `Microsoft JhengHei`
-- Times New Roman：`Times New Roman`
-
-LaTeX 模板中引用標楷體時，優先使用中文 family name：
-
-```tex
-\setCJKmainfont{標楷體}
+```text
+thesis/assets/fonts/
+├── times/
+│   ├── times.ttf
+│   ├── timesbd.ttf
+│   ├── timesi.ttf
+│   └── timesbi.ttf
+└── cjk/
+    └── kaiu.ttf
 ```
 
-若 `標楷體` 未被 fontconfig 直接辨識，但 `DFKai-SB` 有命中，請依 `docs/latex_environment_setup.md` 建立 `標楷體` alias。shell 驗證可先使用：
-
-```bash
-fc-match 'DFKai-SB'
-```
-
-若特定系統的 fontconfig pattern 對 hyphen 解析有差異，再改用 `fc-match 'DFKai\-SB'` 檢查。LaTeX 實作層仍建議直接使用 `標楷體`。
+Windows 的一般來源是 `C:\Windows\Fonts\times*.ttf` 與
+`C:\Windows\Fonts\kaiu.ttf`。LuaLaTeX 透過 `fontspec` 與
+`luatexja-fontspec` 直接讀取上述相對路徑，因此 Docker 與非正式 Overleaf
+預覽可共用相同目錄。所有明文字型與原始 ZIP 都必須被 Git 忽略；正式 CI
+只解密受控的加密封包，不得提交或公開散布明文字型。
 
 ### 2.3 文件基底
 
@@ -424,9 +421,9 @@ placeholder page 樣式固定如下：
 
 本規格先定：
 - 參考文獻系統固定使用 `biblatex` + `biber`。
-- 參考文獻資料放在 `bibliography/references.bib`。
-- 參考文獻套件與樣式設定放在 `bibliography/bibliography.tex`。
-- 預設樣式由 `config/options.tex` 設定，不寫死在 class 內。
+- 參考文獻資料放在 `thesis/content/bibliography/references.bib`。
+- 參考文獻套件與樣式設定放在 `thesis/content/bibliography/bibliography.tex`。
+- 預設樣式由 `thesis/config/options.tex` 設定，不寫死在 class 內。
 - 本論文採用 IEEE 引用與參考文獻格式；此為本專案統一標注方法，符合校方「整本一致」之要求。
 - 可支援樣式：
   - `apa`
@@ -434,7 +431,7 @@ placeholder page 樣式固定如下：
   - `ieee`
   - `chicago`
   - `custom`
-- `custom` 由使用者在 `bibliography/bibliography.tex` 中明確指定 `biblatex` options。
+- `custom` 由使用者在 `thesis/content/bibliography/bibliography.tex` 中明確指定 `biblatex` options。
 - 編譯流程必須能自動執行 `biber`。
 
 ### 6.9 附錄編號
@@ -449,7 +446,7 @@ placeholder page 樣式固定如下：
 
 本專案需固定使用台科大浮水印，實作預設如下：
 
-- 浮水印來源：`assets/ntust_watermark.pdf`
+- 浮水印來源：`thesis/assets/branding/ntust_watermark.pdf`
 - 浮水印固定啟用，不提供關閉選項。
 - 浮水印置於頁面正中央，使用低透明度，不得干擾正文閱讀。
 - 浮水印套用於封面、書名頁、簽名文件 placeholder、摘要、目錄、正文、參考文獻與附錄。
@@ -458,28 +455,31 @@ placeholder page 樣式固定如下：
 
 ### 6.11 本專案預設主文語言
 
-本模板預設以中文撰寫主文：
+本模板預設以英文撰寫主文：
 
-- `\NTUSTThesisLanguage{zh}`
-- 目錄標題預設為 `目錄`
-- 圖目錄標題預設為 `圖目錄`
-- 表目錄標題預設為 `表目錄`
-- 正文章節預設為 `第一章 緒論`、`一、研究背景` 這類中文論文格式。
+- `thesis/config/document.tex` 設定 `\def\NTUSTDocumentLanguage{en}`
+- 目錄標題預設為 `Contents`
+- 圖目錄標題預設為 `List of Figures`
+- 表目錄標題預設為 `List of Tables`
+- 正文章節預設為 `Chapter 1`、`1.1` 這類英文論文格式。
 - 前置頁頁碼仍依校方規格使用大寫羅馬數字 `I, II, III, ...`。
 
-若使用者要撰寫英文主文，可在 `config/metadata.tex` 改為 `\NTUSTThesisLanguage{en}`；此時章節、圖表與參考文獻標籤會切換為英文格式。
+若使用者要撰寫中文主文，可在 `thesis/config/document.tex` 改為
+`\def\NTUSTDocumentLanguage{zh}`；此設定會在 document class 前同步決定 PDF
+根語言，以及章節、圖表與參考文獻標籤。
 
 ---
 
 ## 7. Metadata 與設定結構
 
-可變資料集中放在 `config/metadata.tex`，模板行為選項放在 `config/options.tex`。不得使用 YAML parser；所有設定皆為 LaTeX 巨集或布林值，讓 XeLaTeX 可直接編譯。
+主文語言放在 `thesis/config/document.tex`，可變資料集中放在
+`thesis/config/metadata.tex`，模板行為選項放在 `thesis/config/options.tex`。
+不得使用 YAML parser；所有設定皆為 LaTeX 巨集或布林值，讓 LuaLaTeX 可直接編譯。
 
-`config/metadata.tex` 至少提供以下欄位：
+`thesis/config/metadata.tex` 至少提供以下欄位：
 
 ```tex
 \NTUSTDegree{master} % master | doctoral
-\NTUSTThesisLanguage{zh} % zh | en
 
 \NTUSTDepartmentZh{}
 \NTUSTDepartmentEn{}
@@ -487,6 +487,7 @@ placeholder page 樣式固定如下：
 \NTUSTSchoolEn{National Taiwan University of Science and Technology}
 
 \NTUSTTitleZh{}
+\NTUSTTitleZhDisplay{}
 \NTUSTTitleEn{}
 \NTUSTAuthorZh{}
 \NTUSTAuthorEn{}
@@ -515,12 +516,12 @@ placeholder page 樣式固定如下：
 
 長篇前置內容放在獨立檔案：
 
-- 中文摘要：`frontmatter/abstract_zh.tex`
-- 英文摘要：`frontmatter/abstract_en.tex`
-- 誌謝：`frontmatter/acknowledgement.tex`
-- 符號索引：`frontmatter/symbols.tex`
+- 中文摘要：`thesis/content/frontmatter/abstract_zh.tex`
+- 英文摘要：`thesis/content/frontmatter/abstract_en.tex`
+- 誌謝：`thesis/content/frontmatter/acknowledgement.tex`
+- 符號索引：`thesis/content/frontmatter/symbols.tex`
 
-`config/options.tex` 至少提供以下選項：
+`thesis/config/options.tex` 至少提供以下選項：
 
 ```tex
 \NTUSTBodyFontSize{12} % 12 | 13
@@ -529,7 +530,7 @@ placeholder page 樣式固定如下：
 \NTUSTAppendixNumbering{alpha} % alpha | chinese
 ```
 
-字型不放入 `config/options.tex`，固定由 class 使用 `標楷體` 與 `Times New Roman`。
+字型不放入 options，固定由 class 從 `thesis/assets/fonts/` 載入標楷體與 Times New Roman。
 
 ---
 
@@ -551,26 +552,21 @@ placeholder page 樣式固定如下：
 
 ### 8.3 字型套件
 
-- 使用 `fontspec` + `xeCJK`。
+- 使用 `fontspec` + `luatexja-fontspec`。
 - 英文主字型：Times New Roman
 - 中文主字型：標楷體
-- 使用以下 XeLaTeX 設定：
+- 使用 repository-local 固定檔案，而不是系統 Fontconfig family name：
 
 ```tex
-\usepackage{fontspec}
-\usepackage{xeCJK}
-
-\setmainfont{Times New Roman}
-\setCJKmainfont{標楷體}
+\setmainfont[Path=thesis/assets/fonts/times/]{times.ttf}
+\setmainjfont[Path=thesis/assets/fonts/cjk/]{kaiu.ttf}
 ```
 
-- 若 `標楷體` 未直接命中但 `DFKai-SB` 有命中，請建立 `標楷體` fontconfig alias；LaTeX 模板內優先使用 `標楷體`。
-- 可用以下指令驗證字型是否存在：
+- 明文字型與 ZIP 不得提交；由有合法授權的 Windows 安裝取得。
+- 正式建置前直接檢查五個固定路徑，不提供字型 fallback。
 
 ```bash
-fc-match '標楷體'
-fc-match 'DFKai-SB'
-fc-match 'Times New Roman'
+make pdf
 ```
 
 ### 8.4 頁碼樣式

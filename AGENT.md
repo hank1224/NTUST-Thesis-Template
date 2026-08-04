@@ -1,155 +1,121 @@
-# AGENT.md
+# Agent 行動與交付準則
 
-本文件是給進入此 workspace 的 agent 使用的操作手冊。
+本文件只規範 Agent 在此 repository 中如何判斷、修改、驗證與交付。專案用途、
+功能、目錄結構與公開操作方式以 root `README.md` 為準；環境版本與必要依賴以
+`docs/latex_environment_setup.md` 為準。本文件應保持穩定，不承載當期 task plan。
 
-## 1. Agent 角色
+## 角色與事實來源
 
-在這個 workspace 中，agent 應該像謹慎的 LaTeX 模板維護者：
+在此 repository 中，Agent 應以謹慎的技術編輯與維護者身分工作：
 
 - 先讀目前檔案，再決定要改什麼。
-- 保留使用者既有工作，不回退無關變更。
-- 修改範圍緊貼使用者要求。
-- 偏好可驗證的小步修改，而不是大範圍重寫。
-- 當任務改變專案狀態時，留下有用的交接紀錄。
+- 保留使用者既有工作，不回退或改寫無關變更。
+- 修改範圍緊貼使用者要求，偏好可驗證的小步修改。
+- 實際 source files、設定、產物與 build logs，各自是其領域的事實來源。
+- `README.md`、`docs/` 與 `TASK/` 提供說明或階段脈絡，但內容可能落後於
+  working tree；有衝突時先檢查現行實作，不以舊筆記覆蓋已確認的行為。
+- 如果完成任務所需的來源不存在，應清楚指出缺口或詢問使用者，不得猜測、
+  補造 citation、data、result、metadata 或 conformance claim。
 
-如果任務涉及論文內容寫作、格式調整或模板維護，先找出該任務相關的具體來源檔，不要猜測使用者的研究內容。
+涉及寫作、修訂或研究內容時，先找出與該主張直接相關的來源檔或 artifact。
+本文件不定義論文內容，也不是研究結果的來源。
 
-## 2. Workspace 形狀
+## 開始工作前
 
-repo root 是 NTUST thesis LaTeX template：
+- 先確認 working tree、目前可用工具與專案提供的正式操作入口。
+- 不預設主機使用 Linux、macOS 或 Windows，也不預設特定 shell、套件管理器或
+  路徑格式；應依目前環境選擇等效的檢視與執行方式。
+- 閱讀與任務直接相關的來源、測試與規格。涉及格式規則時另讀
+  `docs/ntust_thesis_format_spec.md`。
+- `TASK/` 只作為尚未完成工作的短期脈絡，不能取代現行 source、tests 或
+  使用者本次指示。
+- 搜尋、檔案檢視與版本差異比較應優先使用目前環境中可靠且高效率的工具。
+- 多個互不依賴的檔案或檢查應平行讀取，避免不必要的來回；不要只根據檔名、
+  舊交接摘要或記憶推斷內容。
+- 網路存取或安裝 dependency 可能需要額外授權；不要為了與任務無關的檢查
+  改動環境。
 
-- `thesis.tex`：LaTeX 主入口。
-- `ntust_thesis.cls`：NTUST thesis class。
-- `config/`：metadata、options、中文詞彙設定與表格 helper。
-- `frontmatter/`：摘要、誌謝、符號表範本。
-- `chapters/`：正文章節範本。
-- `backmatter/`：附錄範本。
-- `bibliography/`：BibLaTeX 設定與範例 references。
-- `assets/`：可重用靜態素材、圖檔與簽核頁放置目錄。
-- `docs/`：論文格式說明與 LaTeX 環境建置指南。
-- `build/`：LaTeX generated output，已由 git ignore。
-- `TASK/`：目前階段任務筆記；可保留給後續 agent 交接。
+## 編譯契約
 
-確認目前狀態時，以 workspace 中的實際檔案為準。不要假設舊交接筆記一定比 working tree 更新。
+- 論文只能透過 repository 公開的正式建置入口，啟動
+  `tooling/latex/texlive-image.lock` 指定的 Docker image。
+- Image reference 必須包含 `@sha256:` digest；不得改用 floating tag，也不得在
+  編譯時更新 TeX Live 套件。
+- 不得直接呼叫主機的 `lualatex`、`latexmk` 或 `biber`，也不得加入主機 TeX
+  路徑覆寫。
+- Docker 編譯輸出與 log 必須留在 `build/`，使主機與 Agent 能在 container
+  結束後直接檢查。
+- 更新 TeX 環境時，必須明確修改 image digest，重新執行完整建置與檢查，並
+  人工檢視實際 PDF。
 
-## 3. 安全規則
+## 編輯與安全準則
 
-- 大幅修改前先看目前檔案狀態與目錄結構。
-- 不丟棄、不 reset、不覆蓋無關的使用者變更。
-- 除非使用者明確要求，不使用 destructive git commands。
-- 手動編輯使用 `apply_patch`。
-- 除非使用者要求，generated output 不納入交付重點。
-- 不捏造 citation、data、result 或個人 metadata。
-- 如果缺少必要來源，留下清楚註記或詢問使用者，不要猜。
-- `AGENT.md` 與 `TASK/` 是工作交接用途；除非使用者明確要求，不要刪除。
+- 手動修改一律使用 `apply_patch`；大量機械格式化可使用專案既有工具。
+- 不使用 destructive Git commands，不擅自 stage、commit、清除或回復檔案。
+- dirty working tree 中的既有內容視為使用者工作；先辨識重疊範圍再修改。
+- 不順手重構、重新命名、改 formatting、class behavior 或 metadata，除非它們
+  是本次要求的一部分。
+- 修改後重讀實際段落或程式，不能只相信 patch 已正確套用。
+- 使用 repository 提供的公開入口作為正式操作介面；直接執行內部模組只用於
+  隔離診斷。
+- 私人文件、明文授權資產、passphrase、secret 或其他敏感資料不得加入 Git、
+  log 或最終回報。
+- 若新增圖檔、字型封包或第三方素材，必須確認授權、忽略規則與檔案大小合理。
 
-## 4. 搜尋與檢視工具
+## 專案邊界與生成物
 
-優先使用：
+- Root 不得新增第二個 LaTeX driver；新的 LaTeX compile input 必須位於
+  `thesis/`。
+- Template、config、content 與 assets 應維持既有責任分界，不得建立平行的
+  top-level 結構。
+- QA checks 與相關工具放在 `tooling/qa/`，不得另建重複的檢查系統。
+- 私人簽核頁與明文字型必須維持 ignored；只有明確允許的說明、checksum 或
+  加密封包可以追蹤。
+- `build/` 是可重建的 generated output；PDF、TeX log、recorder、container
+  console 與環境紀錄都應寫在此處。其中檔案改變不等於 tracked project state
+  改變。
 
-```bash
-rg --files
-rg -n "pattern" path
-sed -n '1,200p' file
-git status --short
-git diff -- file
-```
+## 寫作與研究內容準則
 
-能用 `rg` 時先用 `rg`。如果此 workspace 不是 git repo，改用 `find`、`rg --files` 與檔案內容檢查。
+- 維持 touched files 之間的術語、縮寫、章節引用與語氣一致。
+- counts、percentages、圖表數值與比較結論必須能回溯到明確 evidence 或引用
+  來源。
+- 明確區分「直接觀察到的結果」與「作者對結果的解釋」。
+- 不因文字看似合理就補寫缺少依據的主張，也不捏造引用或個人資料。
+- 圖表路徑、caption、label、交叉引用及 bibliography key 必須與實際來源一致。
+- 不留下意外的 placeholder、未完成筆記或 local debug text。
+- 碰過 thesis source 後，應搜尋常見未完成標記。刻意保留的標記必須具體說明
+  缺少什麼、應從哪裡繼續，不能用模糊文字掩蓋未完成內容。
 
-常用檢視目標：
+## 依修改類型選擇驗證
 
-- `README.md`：template-level 使用說明。
-- `Makefile`：build commands。
-- `.latexmkrc`：LaTeX build settings。
-- `docs/latex_environment_setup.md`：LaTeX 環境安裝與驗證指南。
-- `docs/ntust_thesis_format_spec.md`：台科大論文格式實作規格。
-- `build/thesis.log`：build 後的 compile warnings。
-- `TASK/`：目前階段任務筆記；內容可能常被更新、替換或清空。
+- 先執行與修改範圍最接近的 targeted check，再執行該類交付要求的完整 gate。
+- 一般論文、文件、LaTeX 或 template 修改，使用 `README.md` 定義的正式檢查
+  流程。
+- 編譯失敗或 CI 失敗時，使用 repository 的診斷入口，並檢查 `build/` 中保存的
+  container console、環境紀錄、套件紀錄與 TeX log。
+- 涉及版面、class、caption、表格、演算法或字型時，在自動檢查通過後人工檢視
+  最新 PDF。視覺結果不能只由文字或結構 parser 代替。
+- 新增或搬移 LaTeX input 時，必須執行 compile-boundary 檢查。
+- 只修改文件時，仍應檢查內容是否重複、過期、平台綁定或與實作矛盾。
 
-## 5. 編譯與驗證工具
+## 驗證與交付門檻
 
-LaTeX template 透過 `make` 編譯：
+- 正式檢查不得留下 LaTeX error、undefined citation/reference、missing glyph 或
+  overfull box。
+- 新增或搬移 LaTeX input 時，必須證明 compile boundary 未擴張。
+- Layout-sensitive 修改必須人工檢視實際 PDF。
+- 回報前重讀修改內容，檢查相關版本差異與 whitespace error。
+- 不把未執行的檢查寫成已通過，也不因一般 QA 通過就宣稱未驗證的額外標準。
 
-```bash
-make pdf
-make
-make watch
-make clean-aux
-make clean
-```
+最終回報或跨 Agent handoff 應以本次使用者要求、實際 working tree、相關 diff、
+build logs 與當前有效的 TASK notes 為準，並包含：
 
-主要輸出：
+- 實際改了什麼。
+- 實際執行並通過哪些驗證。
+- 哪些選用檢查未執行。
+- 尚有哪些未解問題或外部阻礙。
+- 若仍需接手，下一步最相關的檔案或操作入口。
 
-```bash
-build/thesis.pdf
-```
-
-目前 build 使用 XeLaTeX 與 `latexmk`。本地 `.latexmkrc` 設定：
-
-- output directory：`build`
-- auxiliary directory：`build`
-- XeLaTeX nonstop mode，並使用 `-halt-on-error`
-- bibliography 使用 `biber`
-
-常用 PDF 檢查：
-
-```bash
-make check-log
-```
-
-若已另外安裝可選工具，可使用 `pdfinfo build/thesis.pdf` 檢查 PDF metadata，或用 `rg` 搜尋 `build/thesis.log`。
-
-若本機沒有 `latexmk`、`xelatex` 或 `biber`，不要假裝已完成編譯；回報缺少工具，並指向 `docs/latex_environment_setup.md`。
-
-## 6. 編輯流程
-
-一般 documentation 或 LaTeX 修改：
-
-1. 檢視相關檔案與目前狀態。
-2. 找出最小安全修改範圍。
-3. 用 `apply_patch` 修改。
-4. 重讀改過的段落。
-5. 執行針對性檢查；LaTeX 修改通常跑 `make pdf`。
-6. 回報前看差異或至少列出實際變更檔案。
-
-模板維護注意事項：
-
-- 保持範本文字通用，不寫入特定研究成果。
-- 不留下私人姓名、學號、簽核影像或未公開資料。
-- 若新增章節，必須同步更新 `thesis.tex`。
-- 若新增圖檔範例，確認檔案大小合理且授權清楚。
-- 若更動 class 行為，確認 `docs/ntust_thesis_format_spec.md` 是否需要同步。
-
-## 7. LaTeX 品質檢查
-
-碰過 thesis files 後，檢查：
-
-- 文件仍可編譯，或清楚回報本機缺少工具。
-- 沒有新增 undefined references 或 citations。
-- figure paths 存在。
-- tables 合理落在頁面內。
-- captions 與 labels 存在。
-- main-matter language 與專案設定一致。
-- 沒有意外留下研究資料、私人資訊或 local debug text。
-
-常用搜尋：
-
-```bash
-rg -n "TODO|todo|placeholder|TBD|FIXME|xxx" chapters frontmatter backmatter config bibliography
-```
-
-範本文字可以保留「請填入」類提示；正式論文內容則不應留下未完成註記。
-
-## 8. 交接方式
-
-跨 agent 交接以目前使用者要求、實際檔案、相關 diff 與 `TASK/` 內的當前階段筆記為準。不要依賴不存在或過期的 snapshot 檔。
-
-好的 handoff note 或最終回報應包含：
-
-- 改了什麼。
-- 驗證了什麼。
-- 還有哪些未解問題。
-- 下一步最相關的檔案或命令。
-
-`AGENT.md` 應保持穩定。它描述 agent 如何工作，不承載最新 task plan。臨時或階段性的 task spec 放在 `TASK/`，完成或過期後可移除內容，但保留目錄。
+預設工作節奏是：先讀再改、縮小範圍、改後重讀、依風險驗證、只回報高訊號
+結果，並讓 workspace 對下一位 Agent 更容易理解。

@@ -1,0 +1,108 @@
+% Page style, bilingual labels, section headings, and contents formatting.
+\renewcommand{\ps@plain}{%
+  \let\@oddhead\@empty
+  \let\@evenhead\@empty
+  \def\@oddfoot{\hfil\thepage\hfil}%
+  \def\@evenfoot{\hfil\thepage\hfil}%
+}
+\pagestyle{plain}
+
+\renewcommand{\@pnumwidth}{2em}
+\renewcommand{\@tocrmarg}{3em}
+
+\newcommand{\ntust@degreezh}{%
+  \ifdefstring{\ntust@degree}{doctoral}{博士論文}{碩士論文}%
+}
+\newcommand{\ntust@degreeen}{%
+  \ifdefstring{\ntust@degree}{doctoral}{Doctoral Dissertation}{Master's Thesis}%
+}
+
+% Written to the .toc immediately before the first appendix entry. This keeps
+% appendix labels correct while the contents file is read on the next build.
+\newcommand{\ntust@tocappendixmatter}{\ntust@tocappendixtrue}
+
+\newcommand{\ntust@chapterlabel}{%
+  \ifntust@appendix
+    \appendixname\space\thechapter
+  \else
+    \ifdefstring{\ntust@language}{zh}
+      {第\zhnumber{\arabic{chapter}}章}
+      {\chaptername\space\thechapter}%
+  \fi
+}
+
+\newcommand{\ntust@applylanguage}{%
+  \ifdefstring{\ntust@language}{zh}{%
+    \renewcommand{\contentsname}{目錄}%
+    \renewcommand{\listfigurename}{圖目錄}%
+    \renewcommand{\listtablename}{表目錄}%
+    \renewcommand{\figurename}{圖}%
+    \renewcommand{\tablename}{表}%
+    \renewcommand{\chaptername}{第}%
+    \renewcommand{\bibname}{參考文獻}%
+    \renewcommand{\appendixname}{附錄}%
+    \renewcommand{\thechapter}{\arabic{chapter}}%
+    \renewcommand{\thesection}{\zhnumber{\arabic{section}}、}%
+    \renewcommand{\thesubsection}{（\zhnumber{\arabic{subsection}}）}%
+    \renewcommand{\thesubsubsection}{\arabic{subsubsection}.}%
+    \renewcommand{\theparagraph}{（\arabic{paragraph}）}%
+    \setlength{\parindent}{2em}%
+  }{%
+    \renewcommand{\contentsname}{Contents}%
+    \renewcommand{\listfigurename}{List of Figures}%
+    \renewcommand{\listtablename}{List of Tables}%
+    \renewcommand{\figurename}{Figure}%
+    \renewcommand{\tablename}{Table}%
+    \renewcommand{\chaptername}{Chapter}%
+    \renewcommand{\bibname}{References}%
+    \renewcommand{\appendixname}{Appendix}%
+    \renewcommand{\thechapter}{\arabic{chapter}}%
+    \renewcommand{\thesection}{\thechapter.\arabic{section}}%
+    \renewcommand{\thesubsection}{\thesection.\arabic{subsection}}%
+    \renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}%
+    \renewcommand{\theparagraph}{\thesubsubsection.\arabic{paragraph}}%
+    \setlength{\parindent}{2.5em}%
+  }%
+  \titleformat{\chapter}[block]
+    {\centering\fontsize{20pt}{30pt}\bfseries}
+    {\ntust@chapterlabel}{1em}{}%
+  \titleformat{\section}
+    {\fontsize{18pt}{27pt}\bfseries}{\thesection}{0.5em}{}%
+  \titleformat{\subsection}
+    {\fontsize{14pt}{21pt}\bfseries}{\thesubsection}{0.5em}{}%
+  \titleformat{\subsubsection}
+    {\fontsize{12pt}{18pt}\bfseries}{\thesubsubsection}{0.5em}{}%
+  \titleformat{\paragraph}[block]
+    {\fontsize{12pt}{18pt}\bfseries}{\theparagraph}{0.5em}{}%
+  \setlength{\parskip}{0.2\baselineskip plus 0.05\baselineskip minus 0.03\baselineskip}%
+  \renewcommand{\thefigure}{\thechapter-\arabic{figure}}%
+  \renewcommand{\thetable}{\thechapter-\arabic{table}}%
+  \renewcommand{\thealgorithm}{\thechapter-\arabic{algorithm}}%
+}
+
+\renewcommand*\l@chapter[2]{%
+  \begingroup
+  \ifdefstring{\ntust@language}{en}{%
+    \ifntust@tocappendix
+      \def\ntust@tocentryprefix{\appendixname\space}%
+      \def\ntust@tocentrynumwidth{5.0em}%
+    \else
+      \def\ntust@tocentryprefix{\chaptername\space}%
+      \def\ntust@tocentrynumwidth{4.8em}%
+    \fi
+    \renewcommand{\numberline}[1]{\hb@xt@\@tempdima{\ntust@tocentryprefix##1\space\hfil}}%
+    \@dottedtocline{0}{0em}{\ntust@tocentrynumwidth}{#1}{#2}%
+  }{%
+    \@dottedtocline{0}{0em}{2.5em}{#1}{#2}%
+  }%
+  \endgroup
+}
+
+\titlespacing*{\chapter}{0pt}{0pt}{20pt}
+\titlespacing*{\section}{0pt}{2.5ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+\titlespacing*{\subsection}{0pt}{2ex plus 1ex minus .2ex}{1ex plus .2ex}
+\titlespacing*{\subsubsection}{0pt}{1.5ex plus 1ex minus .2ex}{1ex plus .2ex}
+\titlespacing*{\paragraph}{0pt}{1.5ex plus 1ex minus .2ex}{1ex plus .2ex}
+
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{4}

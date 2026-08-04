@@ -1,0 +1,70 @@
+% Engine contract, package foundation, fonts, page geometry, and PDF links.
+\RequirePackage{iftex}
+\ifLuaTeX\else
+  \ClassError{ntust_thesis}{This class requires LuaLaTeX}{Run `make pdf'; host TeX compilation is not supported.}
+\fi
+
+\RequirePackage{geometry}
+\RequirePackage{fontspec}
+\RequirePackage{luatexja-fontspec}
+\RequirePackage{setspace}
+\RequirePackage{graphicx}
+\RequirePackage{array}
+\RequirePackage{tabularx}
+\RequirePackage{ragged2e}
+\RequirePackage{booktabs}
+\RequirePackage{pdfpages}
+\RequirePackage{titlesec}
+\RequirePackage{indentfirst}
+\RequirePackage{caption}
+\RequirePackage[chapter]{algorithm}
+\RequirePackage{algpseudocode}
+\RequirePackage{etoolbox}
+\RequirePackage{eso-pic}
+\RequirePackage{tikz}
+\RequirePackage{xcolor}
+\RequirePackage{listings}
+\RequirePackage{zhnumber}
+\RequirePackage{hyperref}
+
+\geometry{
+  a4paper,
+  top=3cm,
+  bottom=2cm,
+  left=3cm,
+  right=3cm
+}
+
+\setmainfont[
+  Path           = thesis/assets/fonts/times/,
+  UprightFont    = times.ttf,
+  BoldFont       = timesbd.ttf,
+  ItalicFont     = timesi.ttf,
+  BoldItalicFont = timesbi.ttf,
+  Ligatures      = TeX
+]{times.ttf}
+\setmainjfont[
+  Path               = thesis/assets/fonts/cjk/,
+  UprightFont        = kaiu.ttf,
+  BoldFont           = kaiu.ttf,
+  BoldFeatures       = {FakeBold=2.5},
+  ItalicFont         = kaiu.ttf,
+  BoldItalicFont     = kaiu.ttf,
+  BoldItalicFeatures = {FakeBold=2.5}
+]{kaiu.ttf}
+\setmonojfont[
+  Path               = thesis/assets/fonts/cjk/,
+  UprightFont        = kaiu.ttf,
+  BoldFont           = kaiu.ttf,
+  BoldFeatures       = {FakeBold=2.5},
+  ItalicFont         = kaiu.ttf,
+  BoldItalicFont     = kaiu.ttf,
+  BoldItalicFeatures = {FakeBold=2.5}
+]{kaiu.ttf}
+
+\hypersetup{
+  colorlinks=false,
+  pdfborder={0 0 0},
+  hypertexnames=false,
+  pdfdisplaydoctitle=true
+}

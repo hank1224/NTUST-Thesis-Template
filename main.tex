@@ -1,0 +1,55 @@
+\input{thesis/config/document}
+
+% Document metadata must be selected before the document class is loaded.
+% Keep this branch in sync with the supported values documented in
+% thesis/config/document.tex.
+\def\ntustLanguageZh{zh}
+\def\ntustLanguageEn{en}
+\ifx\NTUSTDocumentLanguage\ntustLanguageZh
+  \DocumentMetadata{lang=zh-TW}
+  \def\NTUSTApplyDocumentLanguage{\NTUSTThesisLanguage{zh}}
+\else\ifx\NTUSTDocumentLanguage\ntustLanguageEn
+  \DocumentMetadata{lang=en-US}
+  \def\NTUSTApplyDocumentLanguage{\NTUSTThesisLanguage{en}}
+\else
+  \GenericError{}{Unsupported NTUST document language: \NTUSTDocumentLanguage}
+    {Use `zh' or `en' in thesis/config/document.tex.}{}
+\fi\fi
+
+\makeatletter
+\def\input@path{{thesis/template/}}
+\makeatother
+
+\documentclass[12pt,a4paper,oneside]{ntust_thesis}
+
+\NTUSTApplyDocumentLanguage
+\input{thesis/config/options}
+\input{thesis/config/metadata}
+\input{thesis/config/terminology_zh}
+\input{thesis/content/bibliography/bibliography}
+
+\begin{document}
+
+\NTUSTMakeCover
+\NTUSTMakeTitlePage
+\NTUSTMakeRecommendation
+\NTUSTMakeApproval
+
+\NTUSTBeginFrontMatter
+\NTUSTMakeAbstractZh{thesis/content/frontmatter/abstract_zh.tex}
+\NTUSTMakeAbstractEn{thesis/content/frontmatter/abstract_en.tex}
+\NTUSTMakeAcknowledgement{thesis/content/frontmatter/acknowledgement.tex}
+\NTUSTMakeTableOfContents
+\NTUSTMakeSymbolsIndex{thesis/content/frontmatter/symbols.tex}
+\NTUSTMakeListOfFigures
+\NTUSTMakeListOfTables
+
+\NTUSTBeginMainMatter
+\input{thesis/content/chapters/mainmatter}
+
+\NTUSTPrintBibliography
+
+\NTUSTBeginAppendices
+\input{thesis/content/appendices/appendix_a}
+
+\end{document}

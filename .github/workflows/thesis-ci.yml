@@ -1,0 +1,80 @@
+name: Thesis CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Compile and verify template
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Define artifact names
+        id: revision
+        shell: bash
+        run: |
+          short_sha="${GITHUB_SHA::7}"
+          echo "short_sha=${short_sha}" >> "${GITHUB_OUTPUT}"
+          echo "pdf_name=ntust-thesis-template-${short_sha}.pdf" >> "${GITHUB_OUTPUT}"
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends gnupg
+
+      - name: Restore licensed fonts
+        env:
+          THESIS_FONTS_PASSPHRASE: ${{ secrets.THESIS_FONTS_PASSPHRASE }}
+        run: .github/scripts/restore-thesis-fonts.sh
+
+      - name: Compile and run checks
+        run: make check
+
+      - name: Prepare revision-specific PDF
+        env:
+          PDF_NAME: ${{ steps.revision.outputs.pdf_name }}
+        run: cp build/thesis.pdf "build/${PDF_NAME}"
+
+      - name: Upload compiled PDF
+        uses: actions/upload-artifact@v7
+        with:
+          name: ntust-thesis-template-${{ steps.revision.outputs.short_sha }}
+          path: build/${{ steps.revision.outputs.pdf_name }}
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Show build diagnostics after a failure
+        if: failure()
+        run: make logs
+
+      - name: Preserve failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ntust-thesis-diagnostics-${{ steps.revision.outputs.short_sha }}-${{ github.run_attempt }}
+          path: |
+            build/qa/
+            build/thesis.log
+            build/thesis.fls
+            build/thesis.blg
+            build/thesis.bcf
+            build/thesis.run.xml
+          if-no-files-found: warn
+          retention-days: 14

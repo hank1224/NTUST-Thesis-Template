@@ -1,0 +1,1 @@
+"""Thesis PDF quality checks."""

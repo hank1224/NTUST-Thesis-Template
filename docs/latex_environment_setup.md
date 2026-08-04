@@ -1,209 +1,96 @@
-# LaTeX Environment Reproduction
+# Pinned LuaLaTeX environment
 
-本模板使用 XeLaTeX、`latexmk`、`biber`、BibLaTeX、`fontspec` 與 `xeCJK`。Ubuntu 環境建議直接使用 apt 安裝 TeX Live 相關套件，不另外安裝 TUG 官方最新版。
+本模板只有一個受支援的正式編譯環境：
+`tooling/latex/texlive-image.lock` 固定的 Docker image。主機 TeX 與 Overleaf
+都不屬於正式建置契約。
 
-## Target Environment
+## 固定環境
 
-- Ubuntu 24.04 or compatible Linux environment
-- Ubuntu apt repository TeX Live packages
-- `Times New Roman`：透過 apt 的 `ttf-mscorefonts-installer` 安裝
-- `標楷體`
+| 項目 | 固定值 |
+| --- | --- |
+| TeX Live | 2025 `tlnet-final` |
+| Container platform | `linux/amd64` |
+| Engine | LuaLaTeX |
+| Bibliography | biber through latexmk |
+| Root input | `main.tex` |
+| Output | `build/thesis.pdf` |
 
-`標楷體` 請從有授權的 Windows 系統複製 `kaiu.ttf` 到本機使用。不要把 Windows 字型檔提交進此模板 repository，也不要隨模板重新散布。
+Image reference 必須包含完整 `@sha256:` digest。編譯期間不得使用 floating tag、
+執行 `tlmgr update`，或切換到主機 TeX binaries。
 
-## Install System Packages
+Apple Silicon 會透過 Docker 的 `linux/amd64` 模擬執行，因此速度可能慢於原生
+x86_64 主機，但能與 GitHub Actions 使用相同 TeX binaries。
 
-```bash
-sudo apt update
-sudo apt install \
-  latexmk \
-  biber \
-  ttf-mscorefonts-installer \
-  texlive-xetex \
-  texlive-luatex \
-  texlive-latex-recommended \
-  texlive-latex-extra \
-  texlive-fonts-recommended \
-  texlive-lang-chinese \
-  texlive-science \
-  fontconfig \
-  ripgrep
-```
+## 字型
 
-套件用途：
+LuaLaTeX 不使用系統 Fontconfig family name，而是直接從 repository-local 路徑
+載入五個字型。請從有合法授權的 Windows 安裝複製：
 
 ```text
-latexmk                         自動編譯 LaTeX
-biber                           BibLaTeX 參考文獻
-ttf-mscorefonts-installer       Times New Roman 與 Microsoft core fonts
-texlive-xetex                   XeLaTeX，方便指定系統字型
-texlive-luatex                  LuaLaTeX，需要時可用
-texlive-latex-recommended       常見 LaTeX 套件
-texlive-latex-extra             額外常見 LaTeX 套件
-texlive-fonts-recommended       TeX 常見基本字型支援
-texlive-lang-chinese            中文 LaTeX / CJK 相關支援
-texlive-science                 algorithm / algpseudocode 等演算法環境支援
-fontconfig                      fc-match / fc-cache 字型管理
-ripgrep                         rg，快速搜尋 build log 與專案文字
-```
-
-可選工具：
-
-```bash
-sudo apt install poppler-utils
-```
-
-`poppler-utils` 提供 `pdfinfo` 與 `pdftoppm`，方便檢查 PDF。
-
-`ttf-mscorefonts-installer` 位於 Ubuntu multiverse。若 apt 找不到此套件，先確認 multiverse repository 已啟用。
-
-## Do Not Use Chinese Font Packages as Required Fonts
-
-本模板的標楷體來源是 Windows 的 `kaiu.ttf`，因此不要為了替代標楷體而手動安裝下列中文字型套件：
-
-```bash
-fonts-noto-cjk
-fonts-cns11643-kai
-fonts-moe-standard-kai
-fonts-arphic-*
-```
-
-原因是這些中文字型套件會安裝未指定的替代字型。為了讓輸出與台科大格式需求一致，本模板的英文字型使用 apt 安裝的 `Times New Roman`，中文字型使用 Windows 複製的 `標楷體`。
-
-注意：`texlive-lang-chinese` 在 Ubuntu apt 中會透過相依關係安裝部分 Arphic 字型，桌面版 Ubuntu 也可能已預裝 Noto CJK。這些套件存在本身不構成問題；重點是不要把它們當成此模板的標楷體來源。請仍依下一節複製授權 Windows 字型。
-
-## Copy Kai Font from Windows
-
-在有授權的 Windows 系統中尋找下列檔案，複製到本專案根目錄的 `windows字體/`：
-
-```text
+C:\Windows\Fonts\times.ttf
+C:\Windows\Fonts\timesbd.ttf
+C:\Windows\Fonts\timesi.ttf
+C:\Windows\Fonts\timesbi.ttf
 C:\Windows\Fonts\kaiu.ttf
 ```
 
-字型對應：
+並放到 [`thesis/assets/fonts/README.md`](../thesis/assets/fonts/README.md) 指定的
+固定位置。明文字型、ZIP 與 passphrase 都被 Git 忽略。
 
-```text
-kaiu.ttf      標楷體，Fontconfig 常見名稱為 DFKai-SB
-```
-
-從 `windows字體/` 安裝到 Ubuntu 的單一使用者字型目錄：
-
-```bash
-mkdir -p ~/.local/share/fonts/windows
-cp windows字體/kaiu.ttf ~/.local/share/fonts/windows/
-fc-cache -fv
-```
-
-## Check Fonts
-
-```bash
-fc-match 'Times New Roman'
-fc-match '標楷體'
-fc-match 'DFKai-SB'
-```
-
-預期結果會類似：
-
-```text
-Times_New_Roman.ttf: "Times New Roman" "Regular"
-kaiu.ttf: "DFKai-SB" "Regular"
-```
-
-若 `fc-match '標楷體'` 沒有命中 `kaiu.ttf`，但 `fc-match 'DFKai-SB'` 有命中，代表字型已安裝，只是 Fontconfig 沒有把中文名稱對到該字型。這時建立 alias：
-
-```bash
-mkdir -p ~/.config/fontconfig
-
-cat > ~/.config/fontconfig/fonts.conf <<'EOF'
-<?xml version="1.0"?>
-<!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
-<fontconfig>
-  <alias>
-    <family>標楷體</family>
-    <prefer>
-      <family>DFKai-SB</family>
-    </prefer>
-  </alias>
-</fontconfig>
-EOF
-
-fc-cache -fv
-fc-match '標楷體'
-```
-
-## Check Required Commands
-
-```bash
-xelatex --version
-lualatex --version
-latexmk --version
-biber --version
-fc-match 'Times New Roman'
-fc-match '標楷體'
-```
-
-## Build the Thesis
-
-From the repository root:
+## 建置與診斷
 
 ```bash
 make pdf
+make check
+make logs
 ```
 
-The generated PDF is written to:
+`make pdf` 執行順序如下：
+
+1. 驗證 image lock 包含 digest。
+2. 驗證五個字型存在。
+3. 建立被忽略的 `build/` cache 與 diagnostics。
+4. 將 repository bind-mount 到 `/workspace`。
+5. 在 container 內執行受 guard 保護的 `make pdf-in-container`。
+6. 將 PDF、LaTeX log、recorder 與 console 保留在主機 `build/`。
+
+重要輸出：
+
+| 路徑 | 內容 |
+| --- | --- |
+| `build/thesis.pdf` | 完整論文 PDF |
+| `build/thesis.log` | LuaLaTeX log |
+| `build/thesis.fls` | compilation-boundary recorder |
+| `build/qa/docker/invocation.txt` | image、platform 與 exit code |
+| `build/qa/docker/environment.log` | LuaLaTeX、latexmk、biber 版本 |
+| `build/qa/docker/compile-console.log` | 完整 container console |
+| `build/qa/log-warnings.txt` | 一般 LaTeX diagnostics |
+
+發生錯誤時先執行 `make logs`。`make pdf-in-container` 是內部介面；在主機直接
+執行必須失敗。
+
+## GitHub Actions 字型還原
+
+Tracked repository 只保存：
 
 ```text
-build/thesis.pdf
+.github/fonts/thesis-fonts.tar.gz.gpg
+.github/fonts/thesis-fonts.sha256
 ```
 
-Inspect important warnings after a build:
+本機密碼檔 `.github/fonts/thesis-fonts.passphrase.local` 必須維持權限 `0600`
+並由 `.gitignore` 排除。更新封包使用：
 
 ```bash
-make check-log
+.github/scripts/package-thesis-fonts.sh
 ```
 
-## Optional PDF Inspection
+CI 使用 repository secret `THESIS_FONTS_PASSPHRASE` 解密，核對 archive file list
+與每個明文字型的 SHA-256，然後才啟動 Docker。Secret 缺失或 checksum 不符都會
+fail closed。
 
-Install optional tools first if needed:
+## 非正式 Overleaf 預覽
 
-```bash
-sudo apt install poppler-utils
-```
-
-Then inspect the generated PDF:
-
-```bash
-pdfinfo build/thesis.pdf
-pdftoppm -jpeg -f 1 -singlefile build/thesis.pdf /tmp/thesis-preview
-```
-
-The second command creates `/tmp/thesis-preview.jpg` for quick visual inspection of the first page.
-
-## Signed Forms
-
-During drafting, leave the form paths in `config/metadata.tex` empty. The template will render placeholder pages.
-
-For the final version, place signed PDF or image files under `assets/forms/` and set:
-
-```tex
-\NTUSTRecommendationFile{assets/forms/advisor_recommendation.pdf}
-\NTUSTApprovalFile{assets/forms/approval.pdf}
-```
-
-## Troubleshooting
-
-If `xelatex`, `latexmk`, or `biber` is not found, confirm that the tools are installed and available in `PATH`:
-
-```bash
-echo "$PATH"
-which xelatex lualatex latexmk biber
-```
-
-If Chinese text does not render correctly, confirm that `kaiu.ttf` is installed and visible through either `標楷體` or `DFKai-SB`:
-
-```bash
-fc-match '標楷體'
-fc-match 'DFKai-SB'
-```
-
-If `DFKai-SB` works but `標楷體` does not, add the Fontconfig alias in the `Check Fonts` section.
+`main.tex` 與 `thesis/` 形成自包含的 LaTeX input surface，可連同五個授權字型
+上傳 Overleaf，使用 LuaLaTeX／TeX Live 2025 預覽。這個路徑不使用 repository
+的 pinned image，因此不屬於正式建置，也不保證版面或套件版本一致。

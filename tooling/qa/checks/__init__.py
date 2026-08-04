@@ -1,0 +1,1 @@
+"""Individual thesis quality checks."""

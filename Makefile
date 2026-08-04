@@ -1,22 +1,38 @@
-.PHONY: all pdf watch check-log clean clean-aux
+.PHONY: all pdf pdf-in-container check check-layout check-log logs clean
+
+PYTHON ?= python3
+
+THESIS_SOURCE := main.tex
+THESIS_JOB := thesis
+THESIS_PDF := build/$(THESIS_JOB).pdf
+THESIS_LOG := build/$(THESIS_JOB).log
+
+LATEX_ENV = TEXMFVAR="$(CURDIR)/build/texmf-var" TEXMFCACHE="$(CURDIR)/build/texmf-var"
+LATEXMK_ARGS = -g -jobname=$(THESIS_JOB) -outdir=build -auxdir=build
 
 all: pdf
 
 pdf:
-	latexmk
+	tooling/latex/run-in-docker.sh
 
-watch:
-	latexmk -pvc
+pdf-in-container:
+	@test "$(THESIS_DOCKER_BUILD)" = "1" || { echo "Use 'make pdf'; host TeX compilation is not supported." >&2; exit 1; }
+	@test -f /.dockerenv || { echo "The thesis TeX build must run inside the pinned Docker container." >&2; exit 1; }
+	mkdir -p build/texmf-var
+	$(LATEX_ENV) latexmk $(LATEXMK_ARGS) $(THESIS_SOURCE)
+
+check:
+	$(MAKE) pdf
+	$(MAKE) check-layout check-log
+
+check-layout:
+	$(PYTHON) -m tooling.qa.checks.layout --fls build/thesis.fls
 
 check-log:
-	@if [ ! -f build/thesis.log ]; then \
-		echo "build/thesis.log not found; run make pdf first."; \
-	else \
-		grep -niE 'LaTeX Error|Package .*Warning|Class .*Warning|LaTeX Warning|undefined references?|undefined citations?|Citation .* undefined|Reference .* undefined|Label .* multiply defined|multiply defined|Overfull \\hbox|Underfull \\hbox|Missing character|Rerun to get|Please rerun|rerun LaTeX|BibTeX|Biber' build/thesis.log || echo "No matching log warnings found."; \
-	fi
+	$(PYTHON) -m tooling.qa.checks.log --log "$(THESIS_LOG)" --warnings-output build/qa/log-warnings.txt
 
-clean-aux:
-	latexmk -c
+logs:
+	tooling/latex/show-logs.sh
 
 clean:
-	latexmk -C
+	$(RM) -r build

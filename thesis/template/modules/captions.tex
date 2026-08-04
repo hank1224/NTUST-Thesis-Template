@@ -1,0 +1,10 @@
+% Caption formatting shared by figures and tables.
+\DeclareCaptionLabelFormat{ntustzh}{#1#2}
+\DeclareCaptionLabelFormat{ntusten}{#1~#2}
+\captionsetup{font=normalsize,labelsep=space,justification=centering}
+
+\AtBeginDocument{%
+  \ifdefstring{\ntust@language}{zh}
+    {\captionsetup{labelformat=ntustzh}}
+    {\captionsetup{labelformat=ntusten}}%
+}

@@ -1,0 +1,25 @@
+% Main-matter and appendix state transitions.
+\newcommand{\NTUSTBeginMainMatter}{%
+  \clearpage
+  \ntust@appendixfalse
+  \pagenumbering{arabic}
+  \setcounter{page}{1}
+  \ntust@applylanguage
+  \ntust@bodyfont
+}
+
+\newcommand{\NTUSTBeginAppendices}{%
+  \clearpage
+  \ntust@appendixtrue
+  \appendix
+  \addtocontents{toc}{\protect\ntust@tocappendixmatter}%
+  \ifdefstring{\ntust@appendixnumbering}{chinese}
+    {\renewcommand{\thechapter}{\zhnumber{\arabic{chapter}}}}
+    {\renewcommand{\thechapter}{\Alph{chapter}}}%
+  \setcounter{table}{0}%
+  \setcounter{figure}{0}%
+  \setcounter{algorithm}{0}%
+  \renewcommand{\thetable}{\thechapter-\arabic{table}}%
+  \renewcommand{\thefigure}{\thechapter-\arabic{figure}}%
+  \renewcommand{\thealgorithm}{\thechapter-\arabic{algorithm}}%
+}

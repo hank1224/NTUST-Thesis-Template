@@ -1,0 +1,256 @@
+% Cover, title pages, signed forms, abstracts, and navigation pages.
+\newcommand{\ntust@applypdfmetadata}{%
+  \ifdefstring{\ntust@language}{zh}{%
+    \hypersetup{
+      pdftitle={\ntust@titlezh},
+      pdfauthor={\ntust@authorzh},
+      pdfsubject={\ntust@schoolzh{} 學位論文},
+      pdfkeywords={\ntust@keywordszh},
+      pdfcreator={LaTeX with hyperref},
+      pdfproducer={LuaLaTeX}
+    }%
+  }{%
+    \hypersetup{
+      pdftitle={\ntust@titleen},
+      pdfauthor={\ntust@authoren},
+      pdfsubject={\ntust@schoolen{} thesis},
+      pdfkeywords={\ntust@keywordsen},
+      pdfcreator={LaTeX with hyperref},
+      pdfproducer={LuaLaTeX}
+    }%
+  }%
+}
+
+\AtBeginDocument{%
+  \color{black}%
+  \ntust@bodyfont
+  \hyphenpenalty=5000
+  \exhyphenpenalty=10000
+  \emergencystretch=2em
+  \tolerance=1500
+  \ntust@applylanguage
+  \ntust@applypdfmetadata
+  \AddToShipoutPictureBG{\ntust@placewatermark}%
+}
+
+\newcommand{\ntust@placewatermark}{%
+  \ifntust@watermarkenabled
+    \IfFileExists{thesis/assets/branding/ntust_watermark.pdf}{%
+      \begin{tikzpicture}[remember picture,overlay]
+        \node[inner sep=0pt,opacity=0.35] at (current page.center)
+          {\includegraphics[width=\paperwidth,height=\paperheight]{thesis/assets/branding/ntust_watermark.pdf}};
+      \end{tikzpicture}%
+    }{}%
+  \fi
+}
+
+\newcommand{\NTUSTMakeCover}{%
+  \begin{titlepage}
+    \thispagestyle{empty}
+    \centering
+    \vspace*{1cm}
+    \IfFileExists{thesis/assets/branding/ntust_logo.png}{%
+      \includegraphics[width=2.2cm]{thesis/assets/branding/ntust_logo.png}\par
+      \vspace{0.45cm}
+    }{}%
+    {\fontsize{18pt}{27pt}\selectfont \ntust@schoolzh\par}
+    \vspace{0.45cm}
+    {\fontsize{16pt}{24pt}\selectfont \ntust@departmentzh\par}
+    \vspace{0.18cm}
+    {\fontsize{16pt}{24pt}\selectfont \ntust@degreezh\par}
+    \vfill
+    {\fontsize{24pt}{28pt}\bfseries \ntust@titlezhdisplay\par}
+    \vspace{0.55cm}
+    {\fontsize{21pt}{26pt}\bfseries \ntust@titleen\par}
+    \vfill
+    {\fontsize{16pt}{24pt}\selectfont 研究生：\ntust@authorzh\par}
+    \vspace{0.45cm}
+    {\fontsize{16pt}{24pt}\selectfont
+      指導教授：\ntust@advisorzh\quad \ntust@advisortitlezh\par
+      \ifdefempty{\ntust@coadvisorzh}{}{共同指導教授：\ntust@coadvisorzh\quad \ntust@coadvisortitlezh\par}
+    }
+    \vspace{1.2cm}
+    {\fontsize{16pt}{24pt}\selectfont 中華民國 \ntust@graduationyearroc 年 \ntust@graduationmonthzh\par}
+    \vspace*{1cm}
+  \end{titlepage}
+}
+
+\newcommand{\NTUSTMakeTitlePage}{%
+  \begin{titlepage}
+    \thispagestyle{empty}
+    \centering
+    \vspace*{1.2cm}
+    \begin{minipage}{0.92\textwidth}
+      \centering
+      {\fontsize{24pt}{32pt}\bfseries \ntust@titlezhdisplay\par}
+    \end{minipage}\par
+    \vspace{1.15cm}
+    \begin{minipage}{0.92\textwidth}
+      \centering
+      {\fontsize{24pt}{32pt}\bfseries \ntust@titleen\par}
+    \end{minipage}\par
+    \vfill
+    {\fontsize{14pt}{21pt}\selectfont
+      \ntust@authorzh\quad \ntust@authoren\par
+      \vspace{0.65cm}
+      指導教授：\ntust@advisorzh\quad \ntust@advisortitlezh\par
+      \vspace{0.15cm}
+      Advisor: \ntust@advisoren\quad \ntust@advisortitleen\par
+      \ifdefempty{\ntust@coadvisorzh}{}{共同指導教授：\ntust@coadvisorzh\quad \ntust@coadvisortitlezh\par}
+      \ifdefempty{\ntust@coadvisoren}{}{Co-advisor: \ntust@coadvisoren\quad \ntust@coadvisortitleen\par}
+    }
+    \vfill
+    {\fontsize{14pt}{21pt}\selectfont
+      \ntust@schoolzh\par
+      \vspace{0.12cm}
+      \ntust@departmentzh\par
+      \vspace{0.12cm}
+      \ntust@degreezh\par
+      \vspace{0.65cm}
+      \ntust@schoolen\par
+      \vspace{0.12cm}
+      \ntust@departmenten\par
+      \vspace{0.12cm}
+      \ntust@degreeen\par
+      \vspace{0.75cm}
+      中華民國\ntust@graduationyearroc 年\ntust@graduationmonthzh\par
+      \vspace{0.12cm}
+      \ntust@graduationmonthen\ \ntust@graduationyearad\par
+    }
+    \vspace*{1.0cm}
+  \end{titlepage}
+}
+
+\newcommand{\ntust@includeimagepage}[1]{%
+  \thispagestyle{empty}%
+  \AddToShipoutPictureBG*{%
+    \AtPageCenter{%
+      \makebox[0pt][c]{%
+        \raisebox{-.5\height}{%
+          \includegraphics[width=\paperwidth,height=\paperheight,keepaspectratio]{#1}%
+        }%
+      }%
+    }%
+  }%
+  \null
+  \clearpage
+}
+
+\newcommand{\ntust@includeexternalpage}[1]{%
+  \begingroup
+  \ntust@watermarkenabledfalse
+  \filename@parse{#1}%
+  \edef\ntust@fileext{\filename@ext}%
+  \ifdefstring{\ntust@fileext}{pdf}
+    {\includepdf[pages=-,pagecommand={\thispagestyle{empty}}]{#1}}
+    {\ntust@includeimagepage{#1}}%
+  \endgroup
+}
+
+\newcommand{\ntust@signaturepage}[2]{%
+  \clearpage
+  \thispagestyle{empty}
+  \ifdefempty{#2}{%
+    \vspace*{\fill}
+    \begin{center}
+      {\fontsize{20pt}{30pt}\bfseries #1\par}
+      \vspace{2\baselineskip}
+      {\fontsize{12pt}{18pt}\selectfont 本頁為簽名文件預留頁。正式版本請以核定後之 PDF 或影像檔替換。\par}
+    \end{center}
+    \vspace*{\fill}
+    \clearpage
+  }{%
+    \IfFileExists{#2}
+      {\ntust@includeexternalpage{#2}}
+      {%
+        \vspace*{\fill}
+        \begin{center}
+          {\fontsize{20pt}{30pt}\bfseries #1\par}
+          \vspace{2\baselineskip}
+          {\fontsize{12pt}{18pt}\selectfont 找不到指定檔案：\texttt{#2}\par}
+        \end{center}
+        \vspace*{\fill}
+        \clearpage
+      }%
+  }%
+}
+
+\newcommand{\NTUSTMakeRecommendation}{%
+  \ntust@signaturepage{指導教授推薦書}{\ntust@recommendationfile}%
+}
+\newcommand{\NTUSTMakeApproval}{%
+  \ntust@signaturepage{學位考試委員審定書}{\ntust@approvalfile}%
+}
+
+\newcommand{\NTUSTBeginFrontMatter}{%
+  \clearpage
+  \pagenumbering{Roman}
+  \setcounter{page}{1}
+  \pagestyle{plain}
+}
+
+\newcommand{\ntust@fronttitle}[1]{%
+  \clearpage
+  \phantomsection
+  \addcontentsline{toc}{chapter}{#1}
+  \begin{center}
+    {\fontsize{20pt}{30pt}\bfseries #1\par}
+  \end{center}
+  \vspace{2\baselineskip}
+  \ntust@bodyfont
+}
+
+\newcommand{\NTUSTMakeAbstractZh}[1]{%
+  \ntust@fronttitle{中文摘要}
+  \noindent\hspace*{\parindent}\input{#1}
+  \par\vspace{\baselineskip}
+  \noindent\textbf{關鍵詞：}\ntust@keywordszh
+}
+\newcommand{\NTUSTMakeAbstractEn}[1]{%
+  \ntust@fronttitle{Abstract}
+  \noindent\hspace*{\parindent}\input{#1}
+  \par\vspace{\baselineskip}
+  \noindent\textbf{Keywords: }\ntust@keywordsen
+}
+\newcommand{\NTUSTMakeAcknowledgement}[1]{%
+  \ntust@fronttitle{誌謝}
+  \noindent\hspace*{\parindent}\input{#1}
+}
+\newcommand{\NTUSTMakeTableOfContents}{%
+  \clearpage
+  \phantomsection
+  \addcontentsline{toc}{chapter}{\contentsname}
+  \setcounter{tocdepth}{2}%
+  \begingroup
+    \ntust@tocappendixfalse
+    \tableofcontents
+  \endgroup
+}
+\newcommand{\NTUSTMakeSymbolsIndex}[1]{%
+  \ifdefstring{\ntust@includesymbols}{true}{%
+    \ntust@fronttitle{符號索引}
+    \input{#1}
+  }{}%
+}
+\newcommand{\NTUSTMakeListOfFigures}{%
+  \clearpage
+  \phantomsection
+  \addcontentsline{toc}{chapter}{\listfigurename}
+  \begingroup
+    \ifdefstring{\ntust@language}{zh}
+      {\renewcommand{\numberline}[1]{圖##1\hspace*{1em}}}
+      {\renewcommand{\numberline}[1]{Figure~##1\hspace*{1em}}}%
+    \listoffigures
+  \endgroup
+}
+\newcommand{\NTUSTMakeListOfTables}{%
+  \clearpage
+  \phantomsection
+  \addcontentsline{toc}{chapter}{\listtablename}
+  \begingroup
+    \ifdefstring{\ntust@language}{zh}
+      {\renewcommand{\numberline}[1]{表##1\hspace*{1em}}}
+      {\renewcommand{\numberline}[1]{Table~##1\hspace*{1em}}}%
+    \listoftables
+  \endgroup
+}

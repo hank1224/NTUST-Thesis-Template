@@ -6,9 +6,21 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Signed pages are usually private; keep only the directory note tracked.
-assets/forms/*
-!assets/forms/README.md
+# Python artifacts
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Signed pages are private; keep only the directory note tracked.
+/thesis/assets/forms/*
+!/thesis/assets/forms/README.md
+
+# Licensed fonts and local encryption credentials.
+/thesis/assets/fonts/times/*.ttf
+/thesis/assets/fonts/cjk/*.ttf
+/thesis/assets/fonts/*.zip
+/.github/fonts/*.passphrase.local
 
 # LaTeX build artifacts
 build/
